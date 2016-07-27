@@ -109,6 +109,10 @@ OMX_ERRORTYPE SoftG711::internalGetParameter(
             OMX_AUDIO_PARAM_PCMMODETYPE *pcmParams =
                 (OMX_AUDIO_PARAM_PCMMODETYPE *)params;
 
+            if (!isValidOMXParam(pcmParams)) {
+                return OMX_ErrorBadParameter;
+            }
+
             if (pcmParams->nPortIndex > 1) {
                 return OMX_ErrorUndefined;
             }
@@ -147,6 +151,10 @@ OMX_ERRORTYPE SoftG711::internalSetParameter(
             OMX_AUDIO_PARAM_PCMMODETYPE *pcmParams =
                 (OMX_AUDIO_PARAM_PCMMODETYPE *)params;
 
+            if (!isValidOMXParam(pcmParams)) {
+                return OMX_ErrorBadParameter;
+            }
+
             if (pcmParams->nPortIndex != 0 && pcmParams->nPortIndex != 1) {
                 return OMX_ErrorUndefined;
             }
@@ -166,6 +174,10 @@ OMX_ERRORTYPE SoftG711::internalSetParameter(
         {
             const OMX_PARAM_COMPONENTROLETYPE *roleParams =
                 (const OMX_PARAM_COMPONENTROLETYPE *)params;
+
+            if (!isValidOMXParam(roleParams)) {
+                return OMX_ErrorBadParameter;
+            }
 
             if (mIsMLaw) {
                 if (strncmp((const char *)roleParams->cRole,
@@ -223,6 +235,15 @@ void SoftG711::onQueueFilled(OMX_U32 /* portIndex */) {
 
             notify(OMX_EventError, OMX_ErrorUndefined, 0, NULL);
             mSignalledError = true;
+        }
+
+        if (inHeader->nFilledLen * sizeof(int16_t) > outHeader->nAllocLen) {
+            ALOGE("output buffer too small (%d).", outHeader->nAllocLen);
+            android_errorWriteLog(0x534e4554, "27793163");
+
+            notify(OMX_EventError, OMX_ErrorUndefined, 0, NULL);
+            mSignalledError = true;
+            return;
         }
 
         const uint8_t *inputptr = inHeader->pBuffer + inHeader->nOffset;
