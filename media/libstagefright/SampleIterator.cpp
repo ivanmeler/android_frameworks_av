@@ -94,7 +94,7 @@ status_t SampleIterator::seekTo(uint32_t sampleIndex) {
         + mFirstChunk;
 
     if (!mInitialized || chunk != mCurrentChunkIndex) {
-        mCurrentChunkIndex = chunk;
+        
 
         status_t err;
         if ((err = getChunkOffset(chunk, &mCurrentChunkOffset)) != OK) {
@@ -106,18 +106,20 @@ status_t SampleIterator::seekTo(uint32_t sampleIndex) {
 
         uint32_t firstChunkSampleIndex =
             mFirstChunkSampleIndex
-                + mSamplesPerChunk * (mCurrentChunkIndex - mFirstChunk);
+                + mSamplesPerChunk * (chunk - mFirstChunk);
 
         for (uint32_t i = 0; i < mSamplesPerChunk; ++i) {
             size_t sampleSize;
             if ((err = getSampleSizeDirect(
                             firstChunkSampleIndex + i, &sampleSize)) != OK) {
                 ALOGE("getSampleSizeDirect return error");
+                mCurrentChunkSampleSizes.clear();
                 return err;
             }
 
             mCurrentChunkSampleSizes.push(sampleSize);
         }
+        mCurrentChunkIndex = chunk;
     }
 
     uint32_t chunkRelativeSampleIndex =

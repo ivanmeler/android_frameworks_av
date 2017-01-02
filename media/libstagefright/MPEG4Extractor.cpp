@@ -99,6 +99,11 @@
 #endif
 
 namespace android {
+enum {
+    // maximum size of an atom. Some atoms can be bigger according to the spec,
+    // but we only allow up to this size.
+    kMaxAtomSize = 64 * 1024 * 1024,
+};    
 
 class MPEG4Source : public MediaSource {
 public:
@@ -1810,13 +1815,13 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
             break;
         }
 
-        // ©xyz
+        // Â©xyz
         case FOURCC(0xA9, 'x', 'y', 'z'):
         {
             *offset += chunk_size;
 
-            // Best case the total data length inside "©xyz" box
-            // would be 8, for instance "©xyz" + "\x00\x04\x15\xc7" + "0+0/",
+            // Best case the total data length inside "Â©xyz" box
+            // would be 8, for instance "Â©xyz" + "\x00\x04\x15\xc7" + "0+0/",
             // where "\x00\x04" is the text string length with value = 4,
             // "\0x15\xc7" is the language code = en, and "0+0" is a
             // location (string) value with longitude = 0 and latitude = 0.
